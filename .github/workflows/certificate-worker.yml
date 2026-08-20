@@ -1,0 +1,35 @@
+name: CAT Certificate Worker
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+jobs:
+  process-certificates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out worker
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Process queued CAT certificate jobs
+        env:
+          LANTRA_USERNAME: ${{ secrets.LANTRA_USERNAME }}
+          LANTRA_PASSWORD: ${{ secrets.LANTRA_PASSWORD }}
+          CERT_ZIP_PASSWORD: ${{ secrets.CERT_ZIP_PASSWORD }}
+          CAT_CERTIFICATE_WEBHOOK_URL: ${{ secrets.CAT_CERTIFICATE_WEBHOOK_URL }}
+          CERTIFICATE_DISPATCH_WEBHOOK_SECRET: ${{ secrets.CERTIFICATE_DISPATCH_WEBHOOK_SECRET }}
+        run: python src/cat_certificate_worker.py --limit 3
