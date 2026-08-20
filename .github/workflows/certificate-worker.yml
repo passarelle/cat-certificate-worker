@@ -1,5 +1,7 @@
 name: CAT Certificate Worker
 
+# Polls CAT for queued certificate dispatch jobs and processes them via Quartzweb.
+
 on:
   workflow_dispatch:
   schedule:
